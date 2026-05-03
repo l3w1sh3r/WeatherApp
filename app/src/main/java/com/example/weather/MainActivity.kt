@@ -1,47 +1,31 @@
 package com.example.weather
 
+import WeatherApi
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.weather.ui.theme.WeatherTheme
+import com.example.weather.data.repository.WeatherRepository
+import com.example.weather.ui.screen.HomeScreen
+import com.example.weather.viewmodel.WeatherViewModel
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.openweathermap.org/data/2.5/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val api = retrofit.create(WeatherApi::class.java)
+        val repo = WeatherRepository(api)
+        val viewModel = WeatherViewModel(repo)
+
         setContent {
-            WeatherTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            HomeScreen(viewModel)
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    WeatherTheme {
-        Greeting("Android")
     }
 }
