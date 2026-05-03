@@ -4,7 +4,11 @@ import WeatherApi
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.weather.data.repository.WeatherRepository
+import com.example.weather.ui.screen.DetailScreen
 import com.example.weather.ui.screen.HomeScreen
 import com.example.weather.viewmodel.WeatherViewModel
 import retrofit2.Retrofit
@@ -25,7 +29,25 @@ class MainActivity : ComponentActivity() {
         val viewModel = WeatherViewModel(repo)
 
         setContent {
-            HomeScreen(viewModel)
+            val navController = rememberNavController()
+
+            NavHost(navController, startDestination = "home") {
+
+                composable("home") {
+                    HomeScreen(viewModel, navController)
+                }
+
+                composable(
+                    "detail/{city}/{temp}/{desc}"
+                ) { backStackEntry ->
+
+                    val city = backStackEntry.arguments?.getString("city") ?: ""
+                    val temp = backStackEntry.arguments?.getString("temp") ?: ""
+                    val desc = backStackEntry.arguments?.getString("desc") ?: ""
+
+                    DetailScreen(city, temp, desc, navController)
+                }
+            }
         }
     }
 }
