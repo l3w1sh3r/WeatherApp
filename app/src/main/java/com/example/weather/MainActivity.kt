@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.weather.data.repository.WeatherRepository
 import com.example.weather.ui.screen.DetailScreen
 import com.example.weather.ui.screen.HomeScreen
+import com.example.weather.ui.screen.SearchScreen
 import com.example.weather.viewmodel.WeatherViewModel
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -46,6 +47,10 @@ class MainActivity : ComponentActivity() {
                     val desc = backStackEntry.arguments?.getString("desc") ?: ""
 
                     DetailScreen(city, temp, desc, navController)
+                }
+
+                composable("search") {
+                    SearchScreen(navController, viewModel)
                 }
             }
         }
