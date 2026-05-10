@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.weather.utils.RecentSearchManager
+import com.example.weather.viewmodel.WeatherState
 import com.example.weather.viewmodel.WeatherViewModel
 
 
@@ -31,9 +35,17 @@ fun SearchScreen(
     navController: NavController,
     viewModel: WeatherViewModel
 ) {
+    val state = viewModel.state.collectAsState().value
+    var city by remember { mutableStateOf("") }
     val context = LocalContext.current
     var query by remember { mutableStateOf("") }
     var recent by remember { mutableStateOf(RecentSearchManager.getSearches(context)) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.resetState()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -58,7 +70,7 @@ fun SearchScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        // Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = {
             if (query.isNotBlank()) {
@@ -66,27 +78,58 @@ fun SearchScreen(
                 RecentSearchManager.saveSearch(context, query)
                 recent = RecentSearchManager.getSearches(context)
 
-                navController.popBackStack()
+                // navController.popBackStack()
             }
         }) {
             Text("Tìm kiếm")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Tìm kiếm gần đây")
 
-        recent.forEach { city ->
-            Text(
-                text = city,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        viewModel.fetchWeather(city)
-                        navController.popBackStack()
-                    }
-                    .padding(8.dp)
-            )
+
+
+        when (state) {
+            is WeatherState.Idle -> {
+                Text("Tìm kiếm gần đây")
+
+                recent.forEach { city ->
+                    Text(
+                        text = city,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.fetchWeather(city)
+
+                            }
+                            .padding(8.dp)
+                    )
+                }
+            }
+
+            is WeatherState.Success -> {
+
+                val data = state.data
+
+                Column(
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate(
+                                "detail/${data.name}/${data.main.temp}/${data.weather[0].description}"
+                            )
+                        }
+                ) {
+                    Text("Thành phố: ${data.name}")
+                    Text("Nhiệt độ: ${data.main.temp}°C")
+                }
+            }
+
+            is WeatherState.Loading -> CircularProgressIndicator()
+
+            is WeatherState.Error -> Text(state.message)
+
+
+
+            else -> {}
         }
     }
 }

@@ -14,8 +14,6 @@ import com.example.weather.viewmodel.WeatherViewModel
 
 @Composable
 fun HomeScreen(viewModel: WeatherViewModel, navController: NavController) {
-    val state = viewModel.state.collectAsState().value
-    var city by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -38,31 +36,6 @@ fun HomeScreen(viewModel: WeatherViewModel, navController: NavController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        when (state) {
-            is WeatherState.Success -> {
-
-                val data = state.data
-
-                Column(
-                    modifier = Modifier
-                        .clickable {
-                            navController.navigate(
-                                "detail/${data.name}/${data.main.temp}/${data.weather[0].description}"
-                            )
-                        }
-                ) {
-                    Text("Thành phố: ${data.name}")
-                    Text("Nhiệt độ: ${data.main.temp}°C")
-                }
-            }
-
-            is WeatherState.Loading -> CircularProgressIndicator()
-
-            is WeatherState.Error -> Text(state.message)
-
-            else -> {}
-        }
     }
 }
