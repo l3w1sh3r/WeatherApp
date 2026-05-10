@@ -25,6 +25,10 @@ class WeatherViewModel(private val repo: WeatherRepository) : ViewModel() {
             }
         }
     }
+
+    fun resetState() {
+        _state.value = WeatherState.Idle
+    }
 }
 
 sealed class WeatherState {
