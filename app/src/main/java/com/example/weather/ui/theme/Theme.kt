@@ -1,57 +1,48 @@
 package com.example.weather.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
+// 1. Áp dụng bảng màu iOS cho chế độ sáng
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = IosSystemBlue,       // Đổi màu mặc định của Button thành xanh iOS
+    background = IosBackgroundLight, // Đổi màu nền app thành xám iOS
+    surface = IosSurfaceLight,       // Đổi màu nền Card thành trắng
+    onPrimary = IosSurfaceLight,     // Chữ trên nút màu xanh sẽ là màu trắng
+    onBackground = IosTextPrimary,   // Chữ trên nền app là màu đen
+    onSurface = IosTextPrimary       // Chữ trên Card là màu đen
 )
+
+// (Bạn có thể cấu hình tương tự cho DarkColorScheme nếu app có Dark Mode)
 
 @Composable
 fun WeatherTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val colorScheme = LightColorScheme // Tạm thời ép dùng Light Mode để giống iOS nhất
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    // 2. Chỉnh thanh trạng thái (cục pin, wifi) trên cùng màn hình hòa vào nền
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
     }
 
+    // 3. Khởi chạy MaterialTheme với các cấu hình mới
     MaterialTheme(
         colorScheme = colorScheme,
+        shapes = IosShapes, // Đưa Shape bo tròn 20.dp vào đây
         typography = Typography,
         content = content
     )
